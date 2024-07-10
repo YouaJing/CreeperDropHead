@@ -1,0 +1,7 @@
+name: 'CreeperDropHead'
+version: '1.0.1-20240710'
+main: 'tcc.youajing.creeperdrophead.CreeperDropHead'
+api-version: 1.20
+load: POSTWORLD
+authors: [ YouaJing ]
+folia-supported: true
