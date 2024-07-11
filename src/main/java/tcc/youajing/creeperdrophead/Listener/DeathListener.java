@@ -67,7 +67,7 @@ public class DeathListener implements Listener {
                     skullMeta.setOwningPlayer(p);
 
                     // 设置头颅名字
-                    skullMeta.setDisplayName(ChatColor.MAGIC+ "哟" + ChatColor.YELLOW  + p.getName() + "的脑袋");
+                    skullMeta.setDisplayName(ChatColor.YELLOW  + p.getName() + "的脑袋");
 
                     // 获取当前时间并格式化
                     String date = new SimpleDateFormat("yyyy年MM月dd日").format(new Date());
