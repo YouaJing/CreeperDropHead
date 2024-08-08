@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/CreeperDropHead.main.iml" filepath="$PROJECT_DIR$/.idea/modules/CreeperDropHead.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/CreeperDropHead.test.iml" filepath="$PROJECT_DIR$/.idea/modules/CreeperDropHead.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/tcc.youajing.CreeperDropHead.main.iml" filepath="$PROJECT_DIR$/.idea/modules/tcc.youajing.CreeperDropHead.main.iml" />
     </modules>
   </component>

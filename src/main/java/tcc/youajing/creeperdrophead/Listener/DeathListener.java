@@ -1,6 +1,8 @@
 package tcc.youajing.creeperdrophead.Listener;
 
-
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -27,70 +29,58 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DeathListener implements Listener {
     private final Random random = new Random();
     private final Map<UUID, UUID> entityHurtPlayerMap = new ConcurrentHashMap<>();
+    private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
+    // 玩家死亡事件处理
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player p = event.getEntity();
         UUID killerUUID = entityHurtPlayerMap.get(p.getUniqueId());
         Entity killer = killerUUID != null ? Bukkit.getEntity(killerUUID) : null;
+
+        // 检查杀手是否为充能苦力怕
         if (killer != null && killer.getType().equals(EntityType.CREEPER) && ((Creeper) killer).isPowered()) {
             int level = p.getLevel();
-            if (level >= 50) {
-                double dropChance = 0;
-                int levelsToDeduct = 0;
+            double dropChance = Math.min(0.0033 * level, 1.0); // 每级增加0.33%的掉落几率，最高100%
+            int levelsToDeduct = Math.min(level, 300); // 扣除的等级最多为300级
 
-                if (level >= 300) {
-                    dropChance = 1.0;
-                    levelsToDeduct = 300;
-                } else if (level >= 250) {
-                    dropChance = 0.95;
-                    levelsToDeduct = 250;
-                } else if (level >= 200) {
-                    dropChance = 0.88;
-                    levelsToDeduct = 200;
-                } else if (level >= 150) {
-                    dropChance = 0.66;
-                    levelsToDeduct = 150;
-                }else if (level >= 100) {
-                    dropChance = 0.44;
-                    levelsToDeduct = 100;
-                } else {
-                    dropChance = 0.22;
-                    levelsToDeduct = 50;
-                }
+            // 根据计算的几率检查是否掉落头颅
+            if (random.nextDouble() <= dropChance) {
+                Location loc = p.getLocation();
+                ItemStack skull = new ItemStack(Material.PLAYER_HEAD, 1);
+                SkullMeta skullMeta = (SkullMeta) skull.getItemMeta();
+                skullMeta.setOwningPlayer(p);
 
-                if (random.nextDouble() <= dropChance) {
-                    Location loc = p.getLocation();
-                    String loc1 = loc.toString();
-                    ItemStack skull = new ItemStack(Material.PLAYER_HEAD, 1);
-                    SkullMeta skullMeta = (SkullMeta) skull.getItemMeta();
-                    skullMeta.setOwningPlayer(p);
+                // 设置头颅名字
+                skullMeta.setDisplayName(ChatColor.YELLOW + p.getName() + "的脑袋");
 
-                    // 设置头颅名字
-                    skullMeta.setDisplayName(ChatColor.YELLOW  + p.getName() + "的脑袋");
+                // 获取当前日期并格式化
+                String date = new SimpleDateFormat("yyyy年MM月dd日").format(new Date());
+                String dropTime = ChatColor.LIGHT_PURPLE + "掉落时间：" + date;
 
-                    // 获取当前时间并格式化
-                    String date = new SimpleDateFormat("yyyy年MM月dd日").format(new Date());
-                    String dropTime = ChatColor.LIGHT_PURPLE + "掉落时间：" + date;
+                // 设置头颅的Lore
+                skullMeta.setLore(Arrays.asList("会来纪念我的对吧....", "", dropTime));
+                skull.setItemMeta(skullMeta);
 
-                    // 设置Lore
-                    skullMeta.setLore(Arrays.asList("会来纪念我的对吧....", "", dropTime));
-                    skull.setItemMeta(skullMeta);
+                // 在玩家位置掉落头颅
+                loc.getWorld().dropItemNaturally(loc, skull);
 
-                    loc.getWorld().dropItemNaturally(loc, skull);
+                // 扣除玩家的等级
+                p.setLevel(level - levelsToDeduct);
+                // 保持玩家死亡时的物品和等级
+                event.setKeepInventory(true);
+                event.setKeepLevel(true);
+                event.getDrops().clear();
 
-                    // 扣除玩家的经验等级
-                    p.setLevel(level - levelsToDeduct);
-                    // 单次死亡不掉落
-                    event.setKeepInventory(true);
-                    event.setKeepLevel(true);
-                    event.getDrops().clear();
-                    p.sendMessage( ChatColor.YELLOW.toString() + ChatColor.BOLD + "喜，掉了！");
-                }
+                // 使用MiniMessage通知玩家
+                Audience player = (Audience) event.getEntity();
+                Component message = miniMessage.deserialize("<yellow><bold>喜，掉了！</bold></yellow>");
+                player.sendMessage(message);
             }
         }
     }
 
+    // 玩家被实体伤害事件处理
     @EventHandler
     public void onPlayerHurtByEntity(EntityDamageByEntityEvent event) {
         if (event.getEntity() instanceof Player) {

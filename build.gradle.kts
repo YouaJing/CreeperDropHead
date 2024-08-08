@@ -20,10 +20,13 @@ dependencies {
     compileOnly("org.jetbrains:annotations:24.0.1")
     compileOnly("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT")
     implementation("com.github.YufiriaMazenta:CrypticLib:1.0.5")
+    implementation("net.kyori:adventure-api:4.17.0")
+    implementation("net.kyori:adventure-text-minimessage:4.17.0")
+
 }
 
 group = "tcc.youajing"
-version = "1.0.1"
+version = "1.1"
 var mainClass = "${rootProject.group}.${rootProject.name.lowercase()}.CreeperDropHead"
 var pluginVersion: String = version.toString() + "-" + SimpleDateFormat("yyyyMMdd").format(System.currentTimeMillis())
 java.sourceCompatibility = JavaVersion.VERSION_1_8
