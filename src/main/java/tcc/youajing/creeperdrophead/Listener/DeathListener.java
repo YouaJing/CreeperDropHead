@@ -40,12 +40,14 @@ public class DeathListener implements Listener {
 
         // 检查杀手是否为充能苦力怕
         if (killer != null && killer.getType().equals(EntityType.CREEPER) && ((Creeper) killer).isPowered()) {
+            Audience player = (Audience) event.getEntity();
             int level = p.getLevel();
-            double dropChance = Math.min(0.0033 * level, 1.0); // 每级增加0.33%的掉落几率，最高100%
+            double dropChance = Math.min(0.05 + (0.95 / 300) * level, 1.0); // 每级增加0.33%的掉落几率，最高100%
             int levelsToDeduct = Math.min(level, 300); // 扣除的等级最多为300级
 
             // 根据计算的几率检查是否掉落头颅
             if (random.nextDouble() <= dropChance) {
+
                 Location loc = p.getLocation();
                 ItemStack skull = new ItemStack(Material.PLAYER_HEAD, 1);
                 SkullMeta skullMeta = (SkullMeta) skull.getItemMeta();
@@ -53,7 +55,6 @@ public class DeathListener implements Listener {
 
                 // 设置头颅名字
                 skullMeta.setDisplayName(ChatColor.YELLOW + p.getName() + "的脑袋");
-
                 // 获取当前日期并格式化
                 String date = new SimpleDateFormat("yyyy年MM月dd日").format(new Date());
                 String dropTime = ChatColor.LIGHT_PURPLE + "掉落时间：" + date;
@@ -73,9 +74,12 @@ public class DeathListener implements Listener {
                 event.getDrops().clear();
 
                 // 使用MiniMessage通知玩家
-                Audience player = (Audience) event.getEntity();
-                Component message = miniMessage.deserialize("<yellow><bold>喜，掉了！</bold></yellow>");
-                player.sendMessage(message);
+
+                Component successMessage = miniMessage.deserialize("<bold><gradient:#DFFFCD:#deecdd>喜！掉了！---本次死亡不掉落！");
+                player.sendMessage(successMessage);
+            } else {
+                Component fallMessage = miniMessage.deserialize("<bold><gradient:#fc6076:#ff9a44>哦悲悲---人货两空...");
+                player.sendMessage(fallMessage);
             }
         }
     }
