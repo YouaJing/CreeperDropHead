@@ -22,7 +22,7 @@ public class CreeperDropHead extends BukkitPlugin {
 
     public void register() {
         // 注册事件监听器
-        this.getServer().getPluginManager().registerEvents(new DeathListener(), this);
+        this.getServer().getPluginManager().registerEvents(new DeathListener(this), this);
     }
 }
 

@@ -1,35 +1,36 @@
 package tcc.youajing.creeperdrophead.Listener;
 
+import com.destroystokyo.paper.event.player.PlayerLaunchProjectileEvent;
+import io.papermc.paper.threadedregions.scheduler.RegionScheduler;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.entity.Creeper;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
+import org.bukkit.*;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+import tcc.youajing.creeperdrophead.CreeperDropHead;
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class DeathListener implements Listener {
+    private final CreeperDropHead plugin;
     private final Random random = new Random();
     private final Map<UUID, UUID> entityHurtPlayerMap = new ConcurrentHashMap<>();
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
+
+    public DeathListener(CreeperDropHead plugin) {
+        this.plugin = plugin;
+    }
 
     // 玩家死亡事件处理
     @EventHandler
@@ -74,7 +75,6 @@ public class DeathListener implements Listener {
                 event.getDrops().clear();
 
                 // 使用MiniMessage通知玩家
-
                 Component successMessage = miniMessage.deserialize("<bold><gradient:#DFFFCD:#deecdd>喜！掉了！---本次死亡不掉落！");
                 player.sendMessage(successMessage);
             } else {
@@ -93,4 +93,49 @@ public class DeathListener implements Listener {
             entityHurtPlayerMap.put(player.getUniqueId(), damager.getUniqueId());
         }
     }
+
+    @EventHandler
+    public void onPlayerThrowsTrident(PlayerLaunchProjectileEvent event) {
+        if (event.getProjectile() instanceof Trident trident) {
+            if (trident.getItemStack().containsEnchantment(Enchantment.CHANNELING)) {
+                if (event.getPlayer().getWorld().hasStorm()) {
+                    Random random1 = new Random();
+                    if (random1.nextInt(100) < 5) {
+                        Location playerLocation = event.getPlayer().getLocation();
+                        World world = event.getPlayer().getWorld();
+                        Location strikeLocation = playerLocation;
+
+                        // 检测半径128格范围内是否有避雷针
+                        boolean lightningRodFound = false;
+                        for (int x = -128; x <= 128; x++) {
+                            for (int y = -128; y <= 128; y++) {
+                                for (int z = -128; z <= 128; z++) {
+                                    Location checkLocation = playerLocation.clone().add(x, y, z);
+                                    if (world.getBlockAt(checkLocation).getType() == Material.LIGHTNING_ROD) {
+                                        strikeLocation = checkLocation.clone().add(0, -1, 0); // 在避雷针下方一个方块召唤雷击
+                                        lightningRodFound = true;
+                                        break;
+                                    }
+                                }
+                                if (lightningRodFound) break;
+                            }
+                            if (lightningRodFound) break;
+                        }
+
+                        // 召唤雷击
+                        world.strikeLightning(strikeLocation);
+                        // 获取同世界的玩家
+                        List<Player> nearbyPlayers =event.getPlayer().getWorld().getPlayers();
+
+                        // 通知每个玩家
+                        Component message = miniMessage.deserialize("<bold><gradient:#005bea:#00c6fb:#005bea>⚡⚡⚡⚡" + event.getPlayer().getName() + "装B遭雷劈⚡⚡⚡⚡");
+                        for (Player nearbyPlayer : nearbyPlayers) {
+                            nearbyPlayer.sendMessage(message);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }
